@@ -7,8 +7,39 @@ import joblib
 # Page Config
 st.set_page_config(page_title="Match Predictor", page_icon="⚽", layout="centered")
 
-# --- 1. Load the Exported Artifacts ---
-@st.cache_resource # Caches the model so it doesn't reload on every click
+# --- 1. Custom CSS for Premium Styling ---
+st.markdown("""
+<style>
+    /* Style the Predict button with Premier League colors */
+    div.stButton > button:first-child {
+        background-color: #38003c;
+        color: white;
+        border-radius: 8px;
+        font-size: 18px;
+        font-weight: bold;
+        width: 100%;
+        border: none;
+        padding: 12px;
+        transition: 0.3s;
+    }
+    div.stButton > button:first-child:hover {
+        background-color: #e90052;
+        color: white;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    /* Clean up the header font */
+    .title-text {
+        text-align: center;
+        color: #38003c;
+        font-family: 'Helvetica Neue', sans-serif;
+        font-weight: 800;
+    }
+</style>
+""", unsafe_allow_html=True)
+
+# --- 2. Load the Exported Artifacts ---
+@st.cache_resource 
 def load_artifacts():
     model = tf.keras.models.load_model('models/football_model.keras')
     scaler = joblib.load('models/scaler.pkl')
@@ -18,24 +49,29 @@ def load_artifacts():
 
 model, scaler, encoder, elo_dict = load_artifacts()
 
-# --- 2. Dashboard UI ---
-st.title("⚽ Premier League Match Predictor")
-st.markdown("Powered by Deep Learning & Elo Ratings")
+# --- 3. Dashboard UI ---
+st.markdown("<h1 class='title-text'>⚽ Premier League AI Predictor</h1>", unsafe_allow_html=True)
+st.markdown("<p style='text-align: center; font-size: 18px; color: gray;'>Powered by Deep Learning & Dynamic Elo Ratings</p>", unsafe_allow_html=True)
+st.divider()
 
-# Layout with two columns
+# Set Man United as default if available
+teams = list(encoder.classes_)
+default_home = teams.index("Man United") if "Man United" in teams else 0
+default_away = teams.index("Arsenal") if "Arsenal" in teams else 1
+
 col1, col2 = st.columns(2)
 
 with col1:
-    home_team = st.selectbox("Select Home Team", encoder.classes_)
+    home_team = st.selectbox("🏠 Home Team", teams, index=default_home)
+    home_goals = st.slider(f"{home_team}'s Recent Avg Goals", min_value=0.0, max_value=5.0, value=1.8, step=0.1)
     
 with col2:
-    away_team = st.selectbox("Select Away Team", encoder.classes_)
+    away_team = st.selectbox("✈️ Away Team", teams, index=default_away)
 
-# Slider for recent form
-home_goals = st.slider("Home Team's Recent Avg Goals", min_value=0.0, max_value=5.0, value=1.5, step=0.1)
+st.markdown("<br>", unsafe_allow_html=True)
 
-# --- 3. Inference & Visualization ---
-if st.button("Predict Outcome"):
+# --- 4. Inference & Visualization ---
+if st.button("🔮 Predict Match Outcome"):
     if home_team == away_team:
         st.error("Home and Away teams must be different!")
     else:
@@ -52,17 +88,23 @@ if st.button("Predict Outcome"):
         features_scaled = scaler.transform(features)
         probs = model.predict(features_scaled)[0]
         
-        # Display Results
-        st.subheader("Match Prediction Probabilities")
+        st.divider()
+        st.markdown("<h3 style='text-align: center;'>Head-to-Head Analytics</h3>", unsafe_allow_html=True)
         
-        # Create a dataframe for the bar chart
-        chart_data = pd.DataFrame(
-            {"Probability": [probs[2], probs[1], probs[0]]},
-            index=[f"{home_team} Win", "Draw", f"{away_team} Win"]
-        )
+        # Display Elo Ratings using sleek Metric Cards
+        elo_col1, elo_col2 = st.columns(2)
+        elo_col1.metric(label=f"📈 {home_team} Elo Rating", value=f"{home_elo:.0f}")
+        elo_col2.metric(label=f"📈 {away_team} Elo Rating", value=f"{away_elo:.0f}")
         
-        # Render a sleek bar chart
-        st.bar_chart(chart_data)
+        st.markdown("<br>", unsafe_allow_html=True)
+        st.markdown("#### Match Prediction Probabilities")
         
-        # Display actual Elo ratings
-        st.caption(f"Current Elo Ratings — {home_team}: {home_elo:.0f} | {away_team}: {away_elo:.0f}")
+        # Display animated progress bars for probabilities
+        st.write(f"🏠 **{home_team} Win:** {probs[2]:.1%}")
+        st.progress(float(probs[2]))
+        
+        st.write(f"🤝 **Draw:** {probs[1]:.1%}")
+        st.progress(float(probs[1]))
+        
+        st.write(f"✈️ **{away_team} Win:** {probs[0]:.1%}")
+        st.progress(float(probs[0]))
