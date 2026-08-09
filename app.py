@@ -101,7 +101,7 @@ def load_artifacts():
 model, scaler, encoder, elo_dict = load_artifacts()
 
 # --- 4. Dashboard UI ---
-st.markdown("<h1 class='title-text'>⚽ Match Predictor</h1>", unsafe_allow_html=True)
+st.markdown("<h1 class='title-text'>⚽ Match Predictor by Danish</h1>", unsafe_allow_html=True)
 st.markdown("<p style='text-align: center; font-size: 16px; color: #e90052; font-weight: bold;'>Powered by Deep Learning & Elo Ratings</p>", unsafe_allow_html=True)
 st.divider()
 
