@@ -5,7 +5,7 @@ import tensorflow as tf
 import joblib
 
 # Page Config (Must be the first Streamlit command)
-st.set_page_config(page_title="Match Predictor", page_icon="⚽", layout="centered")
+st.set_page_config(page_title="Match Predictor by Danish", page_icon="⚽", layout="centered")
 
 # --- 1. Custom CSS for Stadium Background & Glassmorphism ---
 st.markdown("""
