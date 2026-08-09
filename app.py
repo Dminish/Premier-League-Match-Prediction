@@ -5,7 +5,7 @@ import tensorflow as tf
 import joblib
 
 # Page Config (Must be the first Streamlit command)
-st.set_page_config(page_title="Match Predictor", page_icon="⚽", layout="centered")
+st.set_page_config(page_title="Match Predictor by Danish", page_icon="⚽", layout="centered")
 
 # --- 1. Custom CSS for Stadium Background & Glassmorphism ---
 st.markdown("""
@@ -60,7 +60,7 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# --- 2. Team Logo Dictionary ---
+# --- 2. Dictionaries (Logos & Goals) ---
 TEAM_LOGOS = {
     "Arsenal": "https://upload.wikimedia.org/wikipedia/en/5/53/Arsenal_FC.svg",
     "Aston Villa": "https://upload.wikimedia.org/wikipedia/en/9/9f/Aston_Villa_logo.svg",
@@ -88,6 +88,13 @@ def get_logo(team_name):
     # Returns the team logo, or a generic Premier League logo if the team name doesn't perfectly match
     return TEAM_LOGOS.get(team_name, "https://upload.wikimedia.org/wikipedia/en/e/e2/English_Premier_League_logo.svg")
 
+AVG_GOALS = {
+    "Arsenal": 2.1, "Aston Villa": 1.8, "Bournemouth": 1.3, "Brentford": 1.4,
+    "Brighton": 1.6, "Burnley": 0.9, "Chelsea": 1.7, "Crystal Palace": 1.1,
+    "Everton": 1.0, "Fulham": 1.3, "Liverpool": 2.2, "Luton Town": 1.1,
+    "Man City": 2.4, "Man United": 1.5, "Newcastle": 1.9, "Nott'm Forest": 1.1,
+    "Sheffield United": 0.8, "Tottenham": 1.9, "West Ham": 1.4, "Wolves": 1.2
+}
 
 # --- 3. Load the Exported Artifacts ---
 @st.cache_resource 
@@ -123,7 +130,11 @@ with logo_col3:
     st.markdown(f"<div style='text-align: center;'><img src='{get_logo(away_team)}' width='120'></div>", unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
-home_goals = st.slider(f"{home_team}'s Recent Avg Goals", min_value=0.0, max_value=5.0, value=1.8, step=0.1)
+
+# AUTOMATED SLIDER LOGIC
+default_goals = AVG_GOALS.get(home_team, 1.5)
+home_goals = st.slider(f"Adjust {home_team}'s Attacking Form (Avg Goals/Game)", min_value=0.0, max_value=5.0, value=float(default_goals), step=0.1)
+
 st.markdown("<br>", unsafe_allow_html=True)
 
 # --- 5. Inference & Visualization ---
